@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:,">
+<title>First Visit — Coach iPad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1b2440; --navy-deep:#121a30; --red:#f63746; --red-dark:#c81f2e;
+    --blue:#2f5fc3; --cream:#f5f2ea; --cream-dim:rgba(245,242,234,.62);
+    --card:#1e2a4a; --line:rgba(245,242,234,.14);
+    --input-bg:rgba(0,0,0,.28); --tile-bg:rgba(0,0,0,.22);
+    --ok:#3ecf7a; --amber:#ffb84d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:'Barlow',system-ui,sans-serif; color:var(--cream); color-scheme:dark;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(47,95,195,.20), transparent 60%),
+      radial-gradient(900px 500px at 50% 110%, rgba(246,55,70,.10), transparent 60%),
+      repeating-linear-gradient(115deg, transparent 0 26px, rgba(245,242,234,.022) 26px 27px),
+      linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+    background-attachment:fixed;
+    min-height:100dvh;
+  }
+  body.light{
+    --cream:#1b2440; --cream-dim:rgba(27,36,64,.66); --line:rgba(27,36,64,.16);
+    --input-bg:rgba(255,255,255,.55); --tile-bg:rgba(255,255,255,.4);
+    color:var(--navy); color-scheme:light;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(47,95,195,.13), transparent 60%),
+      radial-gradient(900px 500px at 50% 110%, rgba(246,55,70,.07), transparent 60%),
+      repeating-linear-gradient(115deg, transparent 0 26px, rgba(27,36,64,.03) 26px 27px),
+      linear-gradient(180deg, #f8f5ee 0%, #f5f2ea 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1120px; margin:0 auto; padding:26px 26px calc(34px + env(safe-area-inset-bottom));}
+
+  /* ---------- header ---------- */
+  header{display:flex; align-items:center; gap:16px;}
+  .logo{width:64px; height:auto; display:block; flex-shrink:0;}
+  .head-text{flex:1; min-width:0;}
+  .kicker{font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.34em; font-size:12px;
+    color:var(--red); text-transform:uppercase;}
+  h1{font-family:'Barlow Condensed'; font-weight:700; text-transform:uppercase;
+    font-size:clamp(30px,4.6vw,44px); line-height:.98; letter-spacing:.01em; margin-top:4px;}
+  .live-row{display:flex; align-items:flex-start; gap:8px; margin-top:8px; font-size:13.5px; color:var(--cream-dim); line-height:1.45;}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--ok); flex-shrink:0; margin-top:5px;
+    box-shadow:0 0 0 0 rgba(62,207,122,.5); animation:pulse 2.4s infinite;}
+  .dot.stale{background:var(--amber); animation:none; box-shadow:none;}
+  .dot.down{background:var(--red); animation:none; box-shadow:none;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(62,207,122,.45)} 70%{box-shadow:0 0 0 7px rgba(62,207,122,0)} 100%{box-shadow:0 0 0 0 rgba(62,207,122,0)}}
+  @media (prefers-reduced-motion: reduce){ .dot{animation:none} }
+  .theme-toggle{width:42px; height:42px; border-radius:50%; cursor:pointer; padding:0; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(245,242,234,.08); border:1.5px solid var(--line); color:var(--cream);
+    -webkit-appearance:none; appearance:none; touch-action:manipulation;}
+  .theme-toggle:active{transform:scale(.94)}
+  .theme-toggle svg{width:20px; height:20px; display:block;}
+  .theme-toggle .icon-moon{display:none;}
+  body.light .theme-toggle{background:var(--blue); border-color:var(--red); border-width:2px; color:#fff;}
+  body.light .theme-toggle .icon-sun{display:none;}
+  body.light .theme-toggle .icon-moon{display:block;}
+
+  /* ---------- queue ---------- */
+  .queue-head{display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin:30px 0 14px;}
+  .queue-head h2{font-family:'Barlow Condensed'; font-weight:700; text-transform:uppercase;
+    letter-spacing:.06em; font-size:24px;}
+  .queue-head .count{font-size:14px; color:var(--cream-dim);}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px;}
+  .vcard{appearance:none; -webkit-appearance:none; text-align:left; width:100%; cursor:pointer;
+    background:linear-gradient(180deg, rgba(245,242,234,.05), rgba(245,242,234,.02));
+    border:1px solid var(--line); border-top:3px solid var(--red); border-radius:16px;
+    padding:18px; color:var(--cream); font-family:'Barlow';
+    box-shadow:0 14px 34px rgba(0,0,0,.28); touch-action:manipulation;
+    transition:transform .08s ease, border-color .15s ease;}
+  body.light .vcard{background:rgba(255,255,255,.5); box-shadow:0 10px 26px rgba(27,36,64,.10);}
+  .vcard:active{transform:scale(.99)}
+  .vcard.is-done{opacity:.55; border-top-color:var(--cream-dim);}
+  .vcard.is-progress{border-top-color:var(--amber);}
+  .vc-top{display:flex; align-items:center; gap:14px;}
+  .avatar{width:56px; height:56px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(160deg, var(--blue), #1d3f85);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Barlow Condensed'; font-weight:700; font-size:22px; letter-spacing:.04em; color:#fff;
+    border:2px solid rgba(245,242,234,.25);}
+  .vc-name{font-family:'Barlow Condensed'; font-weight:700; text-transform:uppercase;
+    font-size:26px; line-height:1; word-break:break-word;}
+  .vc-meta{font-size:14px; color:var(--cream-dim); margin-top:4px;}
+  .chip{display:inline-block; font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; font-size:12px; padding:4px 10px; border-radius:999px;
+    border:1.5px solid rgba(246,55,70,.55); color:#ff8f99; background:rgba(246,55,70,.12); white-space:nowrap;}
+  body.light .chip{color:var(--red-dark);}
+  .vc-top .chip{margin-left:auto; align-self:flex-start;}
+  .vc-rows{margin-top:14px; border-top:1px solid var(--line);}
+  .vc-row{display:flex; justify-content:space-between; gap:12px; padding:8px 0; font-size:15px;
+    border-bottom:1px solid var(--line);}
+  .vc-row:last-child{border-bottom:0;}
+  .vc-row .k{font-family:'Barlow Condensed'; font-weight:600; letter-spacing:.16em; font-size:12px;
+    text-transform:uppercase; color:var(--cream-dim); flex-shrink:0; padding-top:2px;}
+  .vc-row .v{font-weight:600; text-align:right; word-break:break-word;}
+  .vc-row .v.waiting{color:var(--amber);}
+  .status-pill{display:inline-block; font-family:'Barlow Condensed'; font-weight:700; letter-spacing:.12em;
+    text-transform:uppercase; font-size:12.5px; padding:3px 10px; border-radius:999px;}
+  .st-waiting{background:rgba(255,184,77,.16); color:var(--amber); border:1px solid rgba(255,184,77,.5);}
+  .st-progress{background:rgba(47,95,195,.22); color:#9db9ef; border:1px solid rgba(47,95,195,.6);}
+  body.light .st-progress{color:#1d3f85;}
+  .st-done{background:rgba(62,207,122,.14); color:var(--ok); border:1px solid rgba(62,207,122,.45);}
+  .empty{border:1.5px dashed var(--line); border-radius:16px; padding:44px 24px; text-align:center;}
+  .empty .big{font-family:'Barlow Condensed'; font-weight:700; text-transform:uppercase; font-size:26px; letter-spacing:.04em;}
+  .empty .small{margin-top:8px; font-size:15px; color:var(--cream-dim); line-height:1.55;}
+  .queue-error{margin-top:14px; font-size:14.5px; line-height:1.55; color:#ffb3ba;
+    background:rgba(246,55,70,.10); border:1px solid rgba(246,55,70,.4); border-radius:12px; padding:13px 15px; display:none;}
+  body.light .queue-error{color:var(--red-dark);}
+
+  /* ---------- interview ---------- */
+  .back-btn{appearance:none; -webkit-appearance:none; background:transparent; border:1.5px solid var(--line);
+    color:var(--cream); border-radius:12px; padding:10px 16px; cursor:pointer; touch-action:manipulation;
+    font-family:'Barlow Condensed'; font-weight:700; text-transform:uppercase; letter-spacing:.12em; font-size:16px;}
+  .back-btn:active{transform:scale(.98)}
+  .person-head{display:flex; align-items:center; gap:16px; margin-top:18px;
+    background:linear-gradient(180deg, rgba(245,242,234,.05), rgba(245,242,234,.02));
+    border:1px solid var(--line); border-top:3px solid var(--red); border-radius:16px; padding:18px;
+    box-shadow:0 14px 34px rgba(0,0,0,.28);}
+  body.light .person-head{background:rgba(255,255,255,.5); box-shadow:0 10px 26px rgba(27,36,64,.10);}
+  .person-head .avatar{width:64px; height:64px; font-size:26px;}
+  .person-head .vc-name{font-size:32px;}
+  .person-head .chip{margin-left:auto; align-self:flex-start;}
+  .photo-reminder{margin-top:14px; display:flex; gap:13px; align-items:flex-start;
+    background:rgba(47,95,195,.14); border:1px solid rgba(47,95,195,.45); border-radius:14px; padding:15px 16px;}
+  .photo-reminder svg{width:26px; height:26px; flex-shrink:0; color:#9db9ef; margin-top:1px;}
+  body.light .photo-reminder svg{color:#1d3f85;}
+  .photo-reminder .t{font-family:'Barlow Condensed'; font-weight:700; text-transform:uppercase;
+    letter-spacing:.08em; font-size:18px; line-height:1.1;}
+  .photo-reminder .d{font-size:14.5px; line-height:1.5; color:var(--cream-dim); margin-top:3px;}
+  .photo-reminder .d b{color:var(--cream);}
+  .talk-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px;}
+  @media (max-width:760px){ .talk-grid{grid-template-columns:1fr;} }
+  .talk{background:linear-gradient(180deg, rgba(245,242,234,.045), rgba(245,242,234,.015));
+    border:1px solid var(--line); border-radius:14px; padding:16px;}
+  body.light .talk{background:rgba(255,255,255,.45);}
+  .talk.wide{grid-column:1 / -1;}
+  .talk .q{font-family:'Barlow Condensed'; font-weight:600; font-size:19px; line-height:1.15; letter-spacing:.02em;}
+  .talk .cue{font-size:13.5px; color:var(--cream-dim); margin-top:3px; line-height:1.45;}
+  .talk input, .talk textarea{width:100%; margin-top:10px; background:var(--input-bg);
+    border:1.5px solid var(--line); border-radius:10px; color:var(--cream);
+    font-size:16.5px; font-family:'Barlow'; padding:12px 13px; outline:none;}
+  .talk textarea{resize:vertical; min-height:52px; line-height:1.45;}
+  .talk input:focus, .talk textarea:focus{border-color:var(--red); box-shadow:0 0 0 1px var(--red);}
+  .actions{display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;}
+  .btn{flex:1; min-width:200px; border:0; cursor:pointer; border-radius:14px;
+    font-family:'Barlow Condensed'; font-weight:700; text-transform:uppercase;
+    letter-spacing:.14em; font-size:20px; padding:17px 16px;
+    touch-action:manipulation; -webkit-appearance:none; appearance:none;
+    transition:transform .08s ease;}
+  .btn:active{transform:scale(.985)}
+  .btn:disabled{opacity:.55; cursor:not-allowed}
+  .btn-red{background:linear-gradient(180deg,#ff4d5c,var(--red) 55%,var(--red-dark)); color:#fff;
+    box-shadow:0 8px 26px rgba(246,55,70,.38), inset 0 1px 0 rgba(255,255,255,.35);}
+  .btn-ghost{background:transparent; color:var(--cream); border:1.5px solid var(--line);}
+  .save-status{margin-top:12px; font-size:14.5px; line-height:1.5; color:var(--cream-dim); min-height:1.3em;}
+  .save-status.err{color:#ffb3ba;}
+  body.light .save-status.err{color:var(--red-dark);}
+  .save-status.ok{color:var(--ok);}
+  .view{display:none;}
+  .view.on{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+  @media (prefers-reduced-motion: reduce){ .view.on{animation:none} }
+  .foot{margin-top:34px; text-align:center; font-size:11.5px; letter-spacing:.28em;
+    color:var(--cream-dim); opacity:.6; font-family:'Barlow Condensed'; text-transform:uppercase;}
+  @media (max-width:560px){
+    .wrap{padding:20px 16px calc(28px + env(safe-area-inset-bottom));}
+    .logo{width:52px;}
+    .kicker{letter-spacing:.22em;}
+    .grid{grid-template-columns:1fr;}
+    header{gap:12px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ QUEUE VIEW ============ -->
+  <section class="view on" id="view-queue">
+    <header>
+      <img class="logo" src="assets/f45-logo-transparent.png" alt="F45 Training">
+      <div class="head-text">
+        <div class="kicker">F45 4S Ranch · Studio iPad</div>
+        <h1>First Visit Queue</h1>
+        <div class="live-row"><span class="dot" id="liveDot"></span><span id="liveText">Connecting…</span></div>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light or dark background">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13.2A8.2 8.2 0 0 1 10.8 4 8.5 8.5 0 1 0 20 13.2z"/></svg>
+      </button>
+    </header>
+
+    <div class="queue-head">
+      <h2>Checked In</h2>
+      <div class="count" id="queueCount"></div>
+    </div>
+    <div class="grid" id="queueGrid"></div>
+    <div class="empty" id="queueEmpty" style="display:none">
+      <div class="big">Nobody waiting</div>
+      <div class="small">When a first-time visitor checks in on their phone, they show up here automatically.</div>
+    </div>
+    <div class="queue-error" id="queueError"></div>
+    <div class="foot">F45 Training · 4S Ranch</div>
+  </section>
+
+  <!-- ============ INTERVIEW VIEW ============ -->
+  <section class="view" id="view-interview">
+    <button class="back-btn" id="backBtn" type="button">‹ Back to queue</button>
+
+    <div class="person-head">
+      <div class="avatar" id="pAvatar">–</div>
+      <div>
+        <div class="vc-name" id="pName">—</div>
+        <div class="vc-meta" id="pMeta">—</div>
+      </div>
+      <span class="chip" id="pChip">—</span>
+    </div>
+
+    <div class="photo-reminder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <div>
+        <div class="t">Profile photo</div>
+        <div class="d">Before you wrap up — make sure they <b>add their profile photo</b> so the team can put a face to the name next visit.</div>
+      </div>
+    </div>
+
+    <div class="talk-grid" id="talkGrid"></div>
+
+    <div class="actions">
+      <button class="btn btn-ghost" id="saveBtn" type="button">Save notes</button>
+      <button class="btn btn-red" id="doneBtn" type="button">Done — finish intake</button>
+    </div>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="foot">Talk it through — fill in as you go</div>
+  </section>
+
+</div>
+
+<script>
+var BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyH6ba0PBZRkHL_LiD6OAdJwz5bwu2sLb6Ko3_JZEx4KpYKnghoKLVafXQUel7eBhpl/exec';
+var POLL_MS = 15000;
+
+var records = [];
+var current = null;      // record being interviewed
+var lastOkAt = 0;
+var pollTimer = null, tickTimer = null;
+
+/* ---------- theme (in-session only, matches tap-in toggle) ---------- */
+document.getElementById('themeToggle').addEventListener('click', function(){
+  document.body.classList.toggle('light');
+});
+
+/* ---------- helpers ---------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function initials(r){
+  var a = (r.firstName || '').trim().charAt(0), b = (r.lastName || '').trim().charAt(0);
+  var s = (a + b).toUpperCase();
+  return s || '?';
+}
+function fullName(r){
+  return ((r.firstName || '') + ' ' + (r.lastName || '')).trim() || 'Visitor';
+}
+function fmtTime(iso){
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+}
+function waitText(iso){
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  var mins = Math.max(0, Math.floor((Date.now() - d.getTime()) / 60000));
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins + ' min';
+  var h = Math.floor(mins / 60), m = mins % 60;
+  return h + 'h ' + (m ? m + 'm' : '');
+}
+function statusOf(r){
+  var s = String(r.status || '').toLowerCase();
+  if (s.indexOf('done') !== -1) return 'done';
+  if (s.indexOf('progress') !== -1) return 'progress';
+  return 'waiting';
+}
+function statusLabel(st){
+  return st === 'done' ? 'Done' : st === 'progress' ? 'In progress' : 'Waiting';
+}
+
+/* ---------- queue rendering ---------- */
+function renderQueue(){
+  var grid = $('queueGrid'), empty = $('queueEmpty');
+  var order = {waiting:0, progress:1, done:2};
+  var sorted = records.slice().sort(function(a,b){
+    var d = order[statusOf(a)] - order[statusOf(b)];
+    if (d) return d;
+    return new Date(a.timestamp) - new Date(b.timestamp);
+  });
+  var waitingCount = records.filter(function(r){ return statusOf(r) !== 'done'; }).length;
+  $('queueCount').textContent = records.length
+    ? waitingCount + ' waiting · ' + records.length + ' total today'
+    : '';
+  empty.style.display = records.length ? 'none' : 'block';
+  grid.innerHTML = sorted.map(function(r){
+    var st = statusOf(r);
+    var contact = [r.phone, r.email].filter(Boolean).join(' · ');
+    return '<button type="button" class="vcard' + (st === 'done' ? ' is-done' : st === 'progress' ? ' is-progress' : '') + '" data-row="' + r.row + '">' +
+      '<span class="vc-top">' +
+        '<span class="avatar">' + esc(initials(r)) + '</span>' +
+        '<span><span class="vc-name">' + esc(fullName(r)) + '</span>' +
+        '<span class="vc-meta" style="display:block">' + (r.age ? 'Age ' + esc(r.age) : 'Age —') + '</span></span>' +
+        '<span class="chip">' + esc(r.visitType || 'First visit') + '</span>' +
+      '</span>' +
+      '<span class="vc-rows">' +
+        (contact ? '<span class="vc-row" style="display:flex"><span class="k">Contact</span><span class="v">' + esc(contact) + '</span></span>' : '') +
+        '<span class="vc-row" style="display:flex"><span class="k">Checked in</span><span class="v">' + esc(fmtTime(r.timestamp)) + '</span></span>' +
+        '<span class="vc-row" style="display:flex"><span class="k">Waiting</span><span class="v' + (st === 'waiting' ? ' waiting' : '') + '">' + (st === 'done' ? '—' : esc(waitText(r.timestamp))) + '</span></span>' +
+        '<span class="vc-row" style="display:flex"><span class="k">Status</span><span class="v"><span class="status-pill st-' + st + '">' + statusLabel(st) + '</span></span></span>' +
+      '</span>' +
+    '</button>';
+  }).join('');
+  var cards = grid.querySelectorAll('.vcard');
+  for (var i = 0; i < cards.length; i++){
+    cards[i].addEventListener('click', function(){
+      openInterview(Number(this.getAttribute('data-row')));
+    });
+  }
+}
+
+function setLive(state, text){
+  var dot = $('liveDot');
+  dot.className = 'dot' + (state === 'stale' ? ' stale' : state === 'down' ? ' down' : '');
+  $('liveText').textContent = text;
+}
+
+function fetchQueue(){
+  fetch(BACKEND_URL, {method:'GET'})
+    .then(function(res){ return res.text(); })
+    .then(function(text){
+      // Google occasionally answers with an HTML error page instead of the
+      // sheet's JSON. Treat anything that isn't the expected payload as a
+      // failed poll (fall into the catch below) so the last good queue stays
+      // on screen instead of blanking to "Nobody waiting".
+      var data = null;
+      try { data = JSON.parse(text); } catch(e) { data = null; }
+      var list = null;
+      if (data && Array.isArray(data.records)) list = data.records;
+      else if (Array.isArray(data)) list = data;
+      if (!list) throw new Error('unexpected response');
+      records = list.filter(function(r){ return r && (r.firstName || r.lastName); });
+      lastOkAt = Date.now();
+      $('queueError').style.display = 'none';
+      setLive('ok', 'Live · updated ' + new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'}));
+      renderQueue();
+      // keep the open interview in sync with fresh data (without clobbering typing)
+      if (current){
+        var fresh = records.filter(function(r){ return r.row === current.row; })[0];
+        if (fresh) current = fresh;
+      }
+    })
+    .catch(function(){
+      if (lastOkAt){
+        setLive('stale', 'Reconnecting… showing last update from ' +
+          new Date(lastOkAt).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}));
+      } else {
+        setLive('down', 'Can’t reach the check-in sheet — retrying every 15 seconds.');
+        var e = $('queueError');
+        e.textContent = 'The queue isn’t loading yet. Check the iPad’s Wi-Fi — it will connect on its own once the sheet answers.';
+        e.style.display = 'block';
+      }
+    });
+}
+
+/* ---------- interview ---------- */
+var FIELDS = [
+  {key:'firstName',      q:'First name',                          cue:'Already captured at check-in — confirm the spelling.', kind:'input', half:true},
+  {key:'lastName',       q:'Last name',                           cue:'Confirm spelling for their profile.', kind:'input', half:true},
+  {key:'age',            q:'Age',                                 cue:'Captured at check-in — confirm it’s right.', kind:'input', half:true},
+  {key:'trainerToday',   q:'Who is your trainer today @ F45?',    cue:'Who’s looking after them this session.', kind:'input', half:true},
+  {key:'howHeard',       q:'How did you hear about us?',          cue:'Friend, Instagram, walked past, ClassPass… ask it casually.', kind:'input'},
+  {key:'f45Before',      q:'Have you ever taken an F45 class before?', cue:'First ever, or tried another studio? Any other group training?', kind:'input'},
+  {key:'occupation',     q:'Occupation?',                         cue:'What do you do for work? — tells you their day, their schedule, their stress.', kind:'input'},
+  {key:'currentRoutine', q:'What is your current fitness routine?', cue:'What are they doing right now — training, sports, nothing yet?', kind:'area'},
+  {key:'shortTermGoals', q:'What are your short term fitness goals?', cue:'What would a win look like in the next few months? What makes this time different?', kind:'area'},
+  {key:'medical',        q:'Medical conditions / injuries',       cue:'Anything we should know — injuries, conditions, movements to avoid. We’ll work around it.', kind:'area'},
+  {key:'coachNotes',     q:'Coach notes',                         cue:'Anything else from the conversation — support at home, schedule, what to follow up on.', kind:'area'}
+];
+
+function buildTalkGrid(){
+  $('talkGrid').innerHTML = FIELDS.map(function(f){
+    var inner = '<div class="q">' + esc(f.q) + '</div>' +
+      '<div class="cue">' + esc(f.cue) + '</div>';
+    if (f.kind === 'area'){
+      inner += '<textarea id="f_' + f.key + '" rows="2" autocomplete="off"></textarea>';
+    } else {
+      inner += '<input id="f_' + f.key + '" type="text" autocomplete="off">';
+    }
+    return '<div class="talk' + (f.half ? '' : ' wide') + '">' + inner + '</div>';
+  }).join('');
+}
+
+function openInterview(row){
+  var r = records.filter(function(x){ return x.row === row; })[0];
+  if (!r) return;
+  current = r;
+  $('pAvatar').textContent = initials(r);
+  $('pName').textContent = fullName(r);
+  var bits = [];
+  if (r.age) bits.push('Age ' + r.age);
+  if (r.phone) bits.push(r.phone);
+  if (r.email) bits.push(r.email);
+  bits.push('Checked in ' + fmtTime(r.timestamp));
+  $('pMeta').textContent = bits.join(' · ');
+  $('pChip').textContent = r.visitType || 'First visit';
+  FIELDS.forEach(function(f){
+    var el = $('f_' + f.key);
+    if (el) el.value = r[f.key] || '';
+  });
+  setSaveStatus('', '');
+  $('view-queue').classList.remove('on');
+  $('view-interview').classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+function closeInterview(){
+  current = null;
+  $('view-interview').classList.remove('on');
+  $('view-queue').classList.add('on');
+  window.scrollTo(0, 0);
+  fetchQueue();
+}
+
+function setSaveStatus(msg, cls){
+  var el = $('saveStatus');
+  el.textContent = msg;
+  el.className = 'save-status' + (cls ? ' ' + cls : '');
+}
+
+function collectFields(){
+  var out = {};
+  FIELDS.forEach(function(f){
+    var el = $('f_' + f.key);
+    out[f.key] = el ? el.value.trim() : '';
+  });
+  return out;
+}
+
+function postUpdate(done, btn){
+  if (!current) return;
+  var fields = collectFields();
+  // The sheet's interview columns — name/age ride along harmlessly if the
+  // script ever grows to accept them.
+  var payload = { type:'intake-update', row: current.row, fields: fields };
+  if (done) payload.done = true;
+  var orig = btn.textContent;
+  btn.disabled = true;
+  $('saveBtn').disabled = true; $('doneBtn').disabled = true;
+  setSaveStatus(done ? 'Finishing…' : 'Saving…', '');
+  fetch(BACKEND_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      btn.disabled = false; $('saveBtn').disabled = false; $('doneBtn').disabled = false;
+      if (data && data.ok){
+        if (done){
+          closeInterview();
+        } else {
+          setSaveStatus('Saved ✓ — keep talking, update anytime.', 'ok');
+          fetchQueue();
+        }
+      } else {
+        setSaveStatus('The sheet didn’t confirm that save. Check the Wi-Fi and tap ' + (done ? 'Done' : 'Save') + ' again — nothing was marked saved.', 'err');
+      }
+    })
+    .catch(function(){
+      btn.disabled = false; $('saveBtn').disabled = false; $('doneBtn').disabled = false;
+      setSaveStatus('Couldn’t reach the sheet. Check the Wi-Fi and try again — your notes are still on this screen.', 'err');
+    });
+}
+
+$('backBtn').addEventListener('click', closeInterview);
+$('saveBtn').addEventListener('click', function(){ postUpdate(false, this); });
+$('doneBtn').addEventListener('click', function(){ postUpdate(true, this); });
+
+/* ---------- go ---------- */
+buildTalkGrid();
+fetchQueue();
+pollTimer = setInterval(fetchQueue, POLL_MS);
+tickTimer = setInterval(function(){
+  if ($('view-queue').classList.contains('on')) renderQueue();
+}, 30000);
+document.addEventListener('visibilitychange', function(){
+  if (!document.hidden) fetchQueue();
+});
+</script>
+</body>
+</html>
