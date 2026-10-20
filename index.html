@@ -133,6 +133,8 @@
     box-shadow:0 14px 34px rgba(0,0,0,.28);}
   body.light .person-head{background:rgba(255,255,255,.5); box-shadow:0 10px 26px rgba(27,36,64,.10);}
   .person-head .avatar{width:64px; height:64px; font-size:26px;}
+  .avatar{overflow:hidden;}
+  .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
   .person-head .vc-name{font-size:32px;}
   .person-head .chip{margin-left:auto; align-self:flex-start;}
   .photo-reminder{margin-top:14px; display:flex; gap:13px; align-items:flex-start;
@@ -192,7 +194,7 @@
   <!-- ============ QUEUE VIEW ============ -->
   <section class="view on" id="view-queue">
     <header>
-      <img class="logo" src="assets/f45-logo-transparent.png" alt="F45 Training">
+      <img class="logo" src="assets/f45-logo.png" alt="F45 Training">
       <div class="head-text">
         <div class="kicker">F45 4S Ranch · Studio iPad</div>
         <h1>First Visit Queue</h1>
@@ -276,6 +278,12 @@ function initials(r){
   var s = (a + b).toUpperCase();
   return s || '?';
 }
+function avatarHTML(r){
+  if (r.photo && String(r.photo).indexOf('http') === 0){
+    return '<img src="' + esc(r.photo) + '" alt="">';
+  }
+  return esc(initials(r));
+}
 function fullName(r){
   return ((r.firstName || '') + ' ' + (r.lastName || '')).trim() || 'Visitor';
 }
@@ -322,7 +330,7 @@ function renderQueue(){
     var contact = [r.phone, r.email].filter(Boolean).join(' · ');
     return '<button type="button" class="vcard' + (st === 'done' ? ' is-done' : st === 'progress' ? ' is-progress' : '') + '" data-row="' + r.row + '">' +
       '<span class="vc-top">' +
-        '<span class="avatar">' + esc(initials(r)) + '</span>' +
+        '<span class="avatar">' + avatarHTML(r) + '</span>' +
         '<span><span class="vc-name">' + esc(fullName(r)) + '</span>' +
         '<span class="vc-meta" style="display:block">' + (r.age ? 'Age ' + esc(r.age) : 'Age —') + '</span></span>' +
         '<span class="chip">' + esc(r.visitType || 'First visit') + '</span>' +
@@ -350,7 +358,7 @@ function setLive(state, text){
 }
 
 function fetchQueue(){
-  fetch(BACKEND_URL, {method:'GET'})
+  return fetch(BACKEND_URL, {method:'GET'})
     .then(function(res){ return res.text(); })
     .then(function(text){
       // Google occasionally answers with an HTML error page instead of the
@@ -419,7 +427,7 @@ function openInterview(row){
   var r = records.filter(function(x){ return x.row === row; })[0];
   if (!r) return;
   current = r;
-  $('pAvatar').textContent = initials(r);
+  $('pAvatar').innerHTML = avatarHTML(r);
   $('pName').textContent = fullName(r);
   var bits = [];
   if (r.age) bits.push('Age ' + r.age);
@@ -464,35 +472,63 @@ function collectFields(){
 function postUpdate(done, btn){
   if (!current) return;
   var fields = collectFields();
-  // The sheet's interview columns — name/age ride along harmlessly if the
-  // script ever grows to accept them.
-  var payload = { type:'intake-update', row: current.row, fields: fields };
+  var row = current.row;
+  var payload = { type:'intake-update', row: row, fields: fields };
   if (done) payload.done = true;
-  var orig = btn.textContent;
   btn.disabled = true;
   $('saveBtn').disabled = true; $('doneBtn').disabled = true;
   setSaveStatus(done ? 'Finishing…' : 'Saving…', '');
+
+  function reenable(){
+    btn.disabled = false; $('saveBtn').disabled = false; $('doneBtn').disabled = false;
+  }
+  var CHECK_KEYS = ['howHeard','f45Before','currentRoutine','shortTermGoals','occupation','medical','trainerToday','coachNotes'];
+  function confirmed(){
+    var fresh = records.filter(function(x){ return x.row === row; })[0];
+    if (!fresh) return false;
+    if (done) return statusOf(fresh) === 'done';
+    // A save is confirmed when the sheet reads back what was sent.
+    for (var i = 0; i < CHECK_KEYS.length; i++){
+      var k = CHECK_KEYS[i];
+      if (String(fresh[k] || '') !== String(fields[k] || '')) return false;
+    }
+    return true;
+  }
+  function verify(attempt){
+    return fetchQueue().then(function(){
+      if (confirmed()) return true;
+      if (attempt >= 2) return false;
+      return new Promise(function(resolve){
+        setTimeout(function(){ resolve(verify(attempt + 1)); }, 2000);
+      });
+    });
+  }
+
+  // The POST response is never read — Google answers a POST with a
+  // redirect that makes the response unreadable from a browser (the
+  // same wall the tap-in hit). Confirmation comes from reading the
+  // queue back and checking the sheet shows what was sent.
   fetch(BACKEND_URL, {
     method:'POST',
+    mode:'no-cors',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body: JSON.stringify(payload)
   })
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      btn.disabled = false; $('saveBtn').disabled = false; $('doneBtn').disabled = false;
-      if (data && data.ok){
+    .then(function(){ return verify(1); })
+    .then(function(ok){
+      reenable();
+      if (ok){
         if (done){
           closeInterview();
         } else {
-          setSaveStatus('Saved ✓ — keep talking, update anytime.', 'ok');
-          fetchQueue();
+          setSaveStatus('Saved ✓ — confirmed in the sheet. Keep talking, update anytime.', 'ok');
         }
       } else {
         setSaveStatus('The sheet didn’t confirm that save. Check the Wi-Fi and tap ' + (done ? 'Done' : 'Save') + ' again — nothing was marked saved.', 'err');
       }
     })
     .catch(function(){
-      btn.disabled = false; $('saveBtn').disabled = false; $('doneBtn').disabled = false;
+      reenable();
       setSaveStatus('Couldn’t reach the sheet. Check the Wi-Fi and try again — your notes are still on this screen.', 'err');
     });
 }
