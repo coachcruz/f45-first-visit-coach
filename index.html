@@ -495,42 +495,41 @@ function postUpdate(done, btn){
     return true;
   }
   function verify(attempt){
-    return fetchQueue().then(function(){
-      if (confirmed()) return true;
-      if (attempt >= 2) return false;
-      return new Promise(function(resolve){
-        setTimeout(function(){ resolve(verify(attempt + 1)); }, 2000);
-      });
+    return new Promise(function(resolve){
+      setTimeout(function(){
+        fetchQueue().then(function(){
+          if (confirmed()){ resolve(true); return; }
+          if (attempt >= 6){ resolve(false); return; }
+          resolve(verify(attempt + 1));
+        });
+      }, attempt === 1 ? 2000 : 3000);
     });
   }
 
-  // The POST response is never read — Google answers a POST with a
-  // redirect that makes the response unreadable from a browser (the
-  // same wall the tap-in hit). Confirmation comes from reading the
-  // queue back and checking the sheet shows what was sent.
+  // Fire the save — the POST's own response is never waited on.
+  // Google's answer can stall in a browser long after the sheet has
+  // the write, and the sheet's own read-back can lag a few seconds
+  // behind the write (both proven live). Confirmation comes from
+  // reading the queue back until the sheet shows what was sent:
+  // first check at ~2s, then every ~3s, up to about 20 seconds.
   fetch(BACKEND_URL, {
     method:'POST',
     mode:'no-cors',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
     body: JSON.stringify(payload)
-  })
-    .then(function(){ return verify(1); })
-    .then(function(ok){
-      reenable();
-      if (ok){
-        if (done){
-          closeInterview();
-        } else {
-          setSaveStatus('Saved ✓ — confirmed in the sheet. Keep talking, update anytime.', 'ok');
-        }
+  }).then(function(){}, function(){});
+  verify(1).then(function(ok){
+    reenable();
+    if (ok){
+      if (done){
+        closeInterview();
       } else {
-        setSaveStatus('The sheet didn’t confirm that save. Check the Wi-Fi and tap ' + (done ? 'Done' : 'Save') + ' again — nothing was marked saved.', 'err');
+        setSaveStatus('Saved ✓ — confirmed in the sheet. Keep talking, update anytime.', 'ok');
       }
-    })
-    .catch(function(){
-      reenable();
-      setSaveStatus('Couldn’t reach the sheet. Check the Wi-Fi and try again — your notes are still on this screen.', 'err');
-    });
+    } else {
+      setSaveStatus('The sheet didn’t confirm that save. Check the Wi-Fi and tap ' + (done ? 'Done' : 'Save') + ' again — nothing was marked saved.', 'err');
+    }
+  });
 }
 
 $('backBtn').addEventListener('click', closeInterview);
